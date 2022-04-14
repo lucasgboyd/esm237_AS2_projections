@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+author: "Lucas Boyd"
+date: "4/12/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(tidyverse)
+library(ncdf4) # package for netcdf manipulation
+library(raster) # package for raster manipulation
+library(rgdal)
+```
+
+```{r}
+ssp245 <- nc_open(here("data", "cesm_245.nc"))
+
+raster <- raster(here("data", "cesm_245.nc"))
+
+
+
+ssp245_df <- as.data.frame(raster, xy = TRUE)
+
+print(ssp245)
+
+
+nc_brick <- brick(here("data", "cesm_245.nc"))
+brick_df <- as.data.frame(nc_brick, xy = TRUE)
+```
+
