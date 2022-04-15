@@ -1,0 +1,82 @@
+---
+title: "Untitled"
+author: "Lucas Boyd"
+date: "4/12/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(ncdf4) # package for netcdf manipulation
+library(raster) # package for raster manipulation
+library(rgdal)
+library(chron)
+library(RColorBrewer)
+library(lattice)
+library(lubridate)
+library(tidyverse)
+library(feasts)
+
+```
+
+```{r}
+cesm_585 <- nc_open(here("data", "raw", "fgoal585.nc"))
+```
+
+```{r}
+# cesm 585
+lat <- ncvar_get(cesm_585, 'lat')
+nlat <- dim(lat)
+lon <- ncvar_get(cesm_585,'lon')
+nlon <- dim(lon)
+```
+
+```{r}
+time <- ncvar_get(cesm_585,'time')
+tunits <- ncatt_get(cesm_585,"time","units")
+nt <- dim(time)
+
+tustr <- strsplit(tunits$value, " ")
+tdstr <- strsplit(unlist(tustr)[3], "-")
+tmonth <- as.integer(unlist(tdstr)[2])
+tday <- as.integer(unlist(tdstr)[3])
+tyear <- as.integer(unlist(tdstr)[1])
+rtime <- chron(time, origin = c(tmonth, tday, tyear))
+```
+
+
+```{r}
+tas <- ncvar_get(cesm_585, "tas")
+
+dlname <- ncatt_get(cesm_585, "tas","long_name")
+dunits <- ncatt_get(cesm_585, "tas", "units")
+fillvalue <- ncatt_get(cesm_585,"tas","_FillValue")
+```
+
+
+```{r}
+lats=which(lat >= 76 & lat <= 81) # insert lattitude and longitude readings here!
+lons=which(lon >= 10 & lon <= 30)
+
+tsavg <- apply(tas[lons,lats,], 3, mean)
+clim <- data.frame(time=rtime, tsavg=tsavg)
+```
+
+
+```{r}
+clim_full <- clim %>%
+  mutate(month = month(time, label = TRUE)) %>% 
+  mutate(year = year(time)) %>% 
+  filter(year != 2013) %>% 
+  mutate(average_tas_c = tsavg -273.15) %>% 
+  dplyr::select(-tsavg, -time) %>% 
+  write_csv(file = "fgoal_585.csv", col_names = TRUE, append = TRUE)
+```
+
+
+
+
+
+
+
