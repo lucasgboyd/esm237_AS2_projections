@@ -1,0 +1,119 @@
+---
+title: "Climate model_demo"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## How to Read Climate Model Data in R
+
+This is a brief introduction to the R libraries and commands you'll need to read in and analyze output from climate/Earth system models. There are many other resources out there, if you'd like more information! I particularly like this set of tutorials, from the "R for Earth System Science" course at the University of Oregon:
+https://pjbartlein.github.io/REarthSysSci/netCDF.html
+
+The commands needed for manipulating netCDF files are contained in the "ncdf4" package in R, make sure this is loaded!
+
+This example assumes that we have already downloaded a netCDF file; in this case, monthly surface air temperature ("TS") from a Community Earth System Model simulation for 1920-2005. The naming conventions for the CESM files are slightly different from the CMIP6 data we looked at in class: the bits of the filename tell you things about how the model was configured (for example "f09_g16" refers to the model resolution, "B20TR" means it's a coupled 'transient' simulation with time-varying CO2) that you don't really need to worry about here. The important bits are:
+- the number that appears right before "cam.h0", this is the ensemble member number (equivalent to the "r1i1p1" string in a CMIP filename); and
+- the date string at the end, in this case "192001-200512"; this is the range of years contained in the file, and will vary depending on the model and simulation.
+
+
+NOTE: The "ncpath" variable below should be set to the directory where the netCDF file is located on YOUR computer!
+
+```{r readdata}
+library(lubridate)
+library(ggplot2)
+library(tidyverse)
+library(chron)
+library(ncdf4)
+library(RColorBrewer)
+library(lattice)
+
+# path and filename for data
+ncpath <- "~/Box Sync/Courses_UCSB/ESM237_Spring2022/"   # path (directory)
+ncname <- "b.e11.B20TRC5CNBDRD.f09_g16.102.cam.h0.TS.192001-200512.nc"  # filename
+ncfname <- paste(ncpath, ncname, sep="")
+dname <- "TS"  # this is the name of the variable you want to look at
+
+ncin <- nc_open(ncfname)
+print(ncin)
+```
+
+Using the print command, we can see some of the basic information about the data ("metadata"), like units, coordinates, etc.
+
+The next thing we need to do is to actually read in the data! This is done with the "ncvar_get" command. Let's start with the time, latitude, and longitude coordinates: since TS is a two-dimensional variable, these are the only coordinates needed. If you want to work with 3D fields like ocean temperature, winds, or soil moisture, then you'll also need an additional vertical coordinate (again, "print" is your friend to find out what those are called).
+
+The following commands read in the longitude and latitude information, and store the lengths of each axis in variables 'nlon' and 'nlat'.
+
+```{r readcoords}
+lon <- ncvar_get(ncin,"lon")
+nlon <- dim(lon)
+lat <- ncvar_get(ncin,"lat")
+nlat <- dim(lat)
+
+head(lat)
+head(lon)
+
+```
+
+Next we'll do the same thing with the time coordinate: this one takes a bit more attention, since the time units must be converted to R date format. Also an important note: if you're working with multiple climate models, the time units are probably different!! 
+
+```{r readtime}
+time <- ncvar_get(ncin,"time")
+tunits <- ncatt_get(ncin,"time","units")
+nt <- dim(time)
+nt
+```
+
+The units of time are stored in "tunits", which contains two fields: hasatt, a logical variable, and units, the actual units themselves. These can be converted to R format using these commands:
+
+```{r formattime}
+tustr <- strsplit(tunits$value, " ")
+tdstr <- strsplit(unlist(tustr)[3], "-")
+tmonth <- as.integer(unlist(tdstr)[2])
+tday <- as.integer(unlist(tdstr)[3])
+tyear <- as.integer(unlist(tdstr)[1])
+rtime <- chron(time,origin=c(tmonth, tday, tyear))
+```
+
+OK now let's read in the temperature data! This may take a while, depending on your computer and the size of the data file. It's also a good idea to get some attributes of the data: the full name ("long_name"), units, and the value used to fill in places where there are no data ("_FillValue").
+
+```{r readtemp}
+TS <- ncvar_get(ncin, "TS")
+dlname <- ncatt_get(ncin,dname,"long_name")
+dunits <- ncatt_get(ncin,dname,"units")
+fillvalue <- ncatt_get(ncin,dname,"_FillValue")
+```
+
+Now we have temperature loaded in and ready to be processed; the dimensions of the "TS" array are [lat x lon x time]. We can make a time slice through the data to see a map of surface temperature at a particular time: say, January 1920 (the first entry in the file).
+
+```{r slice}
+m <- 1
+tmp_slice <- TS[,,m]-273.15     # convert Kelvin to Celsius
+# levelplot of the slice
+grid <- expand.grid(lon=lon, lat=lat)
+cutpts <- c(-50,-40,-30,-20,-10,0,10,20,30,40,50)
+levelplot(tmp_slice ~ lon * lat, data=grid, at=cutpts, cuts=11, pretty=T, 
+  col.regions=(rev(brewer.pal(10,"RdBu"))))
+```
+
+Another common calculation is the time series of regionally averaged data from a particular location of interest (think HW 1, but with model output). To do this, select the parts of the data matrix corresponding to the latitudes and longitudes in your region (note: it's also possible to do this with a shapefile, but that was a longer example than we have time for now).
+
+Let's plot a box covering parts of southern California: 32-35N, 117-119W. **note: you'll also need to pay attention to whether the longitudes in the model are given in degrees E (0 to 360) or degrees W and E (-180 to 180). CESM uses 0-360 coordinates, so the longitude range we want is 241-243E.
+
+The R 'apply' function lets us compute the average over the region easily; here we specify 3 as the dimension over which to apply the mean, and this applies the average over all values corresponding to each time.
+
+```{r getregion}
+lats=which(lat >= 32 & lat <= 35)
+lons=which(lon >= 241 & lon <= 243)
+
+tsavg <- apply(TS[lons,lats,],3,mean)
+
+clim <- data.frame(time=time, tsavg=tsavg)
+yrclim = clim %>% group_by(year(rtime)) %>% summarize(Tann=mean(tsavg))
+yrclim$dt = unique(year(rtime))
+
+ggplot(yrclim, aes(dt, Tann-273.15))+geom_point()+labs(y="Southern CA Temperature", x="Year")+ geom_smooth(method="lm")
+```
+

@@ -16,17 +16,5 @@ library(rgdal)
 
 ```{r}
 ssp245 <- nc_open(here("data", "cesm_245.nc"))
-
-raster <- raster(here("data", "cesm_245.nc"))
-
-
-
-ssp245_df <- as.data.frame(raster, xy = TRUE)
-
-print(ssp245)
-
-
-nc_brick <- brick(here("data", "cesm_245.nc"))
-brick_df <- as.data.frame(nc_brick, xy = TRUE)
 ```
 
