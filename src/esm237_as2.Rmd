@@ -12,6 +12,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(here)
 library(tidyverse)
+library(tsibble)
+library(lubridate)
 ```
 
 # Reading in the climate data:
@@ -28,6 +30,7 @@ cesm_2 <- read_csv(here("data", "cesm_245.csv")) # CESM SSP2
 cesm_5 <- read_csv(here("data", "cesm_585.csv")) # CESM SSP5
 
 
+
 # HISTORICAL DATA
 
 hist1 <- read_csv(here("data", "historical1.csv"))
@@ -38,4 +41,61 @@ hist4 <- read_csv(here("data", "historical4.csv"))
 # historical data compiled 1848-2012
 historical <- rbind(hist1, hist2, hist3, hist4)
 ```
+
+```{r}
+# convert all to time series
+
+fgoal_2_ts <- fgoal_2 %>% 
+  as_tsibble(key = NULL, index = date) 
+
+fgoal_5_ts <- fgoal_5 %>% 
+  as_tsibble(key = NULL, index = date)
+
+cesm_2_ts <- cesm_2 %>% 
+  as_tsibble(key = NULL, index = date) 
+
+cesm_5_ts <- cesm_5 %>% 
+  as_tsibble(key = NULL, index = date) 
+
+historical_ts <- historical %>% 
+  as_tsibble(key = NULL, index = date) 
+
+```
+
+
+```{r}
+# Yearly ts
+fgoal_2_yearly <- fgoal_2_ts %>% 
+  index_by(yearly = ~year(.)) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+
+cesm_2_yearly <- cesm_2_ts %>% 
+  index_by(yearly = ~year(.)) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+
+cesm_5_yearly <- cesm_5_ts %>% 
+  index_by(yearly = ~year(.)) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+
+historical_yearly <- historical_ts %>% 
+  index_by(yearly = ~year(.)) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+
+```
+
+```{r}
+ggplot() +
+  geom_line(data = fgoal_2_yearly, aes(x = yearly, y = mean_tas)) +
+  #geom_line(data = fgoal_5_yearly, aes(x = year, y = mean_tas)) +
+  geom_line(data = cesm_2_yearly, aes(x = yearly, y = mean_tas),
+            color = "red") +
+  geom_line(data = cesm_5_yearly, aes(x = yearly, y = mean_tas),
+            color = "blue") +
+  geom_line(data = historical_yearly, aes(x = yearly, y = mean_tas)) +
+  theme_classic() +
+  geom_vline(xintercept = 2022)
+  
+
+```
+
 
