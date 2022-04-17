@@ -21,7 +21,7 @@ library(feasts)
 ```
 
 ```{r}
-cesm_585 <- nc_open(here("data", "raw", "fgoal585.nc"))
+cesm_585 <- nc_open(here("raw", "cesm_historical4.nc"))
 ```
 
 ```{r}
@@ -66,15 +66,19 @@ clim <- data.frame(time=rtime, tsavg=tsavg)
 
 ```{r}
 clim_full <- clim %>%
-  mutate(month = month(time, label = TRUE)) %>% 
-  mutate(year = year(time)) %>% 
+  separate(col = time, into = c("date", "tod"), sep = " ") %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(year = year(date)) %>% 
+  mutate(month = month(date, label = TRUE)) %>%
   filter(year != 2013) %>% 
   mutate(average_tas_c = tsavg -273.15) %>% 
-  dplyr::select(-tsavg, -time) %>% 
-  write_csv(file = "fgoal_585.csv", col_names = TRUE, append = TRUE)
+  dplyr::select(-tsavg, -tod) %>% 
+  write_csv(file = "historical4.csv", col_names = TRUE, append = TRUE, )
 ```
 
-
+```{r}
+aates <- read_csv(here("src", "historical1.csv"))
+```
 
 
 
