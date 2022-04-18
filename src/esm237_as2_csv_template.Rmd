@@ -21,7 +21,7 @@ library(feasts)
 ```
 
 ```{r}
-cesm_585 <- nc_open(here("raw", "cesm_historical4.nc"))
+cesm_585 <- nc_open(here("raw", "cesm_historical1.nc"))
 ```
 
 ```{r}
@@ -56,6 +56,7 @@ fillvalue <- ncatt_get(cesm_585,"tas","_FillValue")
 
 
 ```{r}
+#### PUT LAT AND LONG READINGS TO SPECIFY AREA HERE
 lats=which(lat >= 76 & lat <= 81) # insert lattitude and longitude readings here!
 lons=which(lon >= 10 & lon <= 30)
 
@@ -66,18 +67,16 @@ clim <- data.frame(time=rtime, tsavg=tsavg)
 
 ```{r}
 clim_full <- clim %>%
-  separate(col = time, into = c("date", "tod"), sep = " ") %>% 
-  mutate(date = mdy(date)) %>% 
-  mutate(year = year(date)) %>% 
-  mutate(month = month(date, label = TRUE)) %>%
-  filter(year != 2013) %>% 
-  mutate(average_tas_c = tsavg -273.15) %>% 
-  dplyr::select(-tsavg, -tod) %>% 
-  write_csv(file = "historical4.csv", col_names = TRUE, append = TRUE, )
-```
-
-```{r}
-aates <- read_csv(here("src", "historical1.csv"))
+  mutate(year = year(rtime)) %>% 
+  mutate(month = month(rtime)) %>% 
+  mutate(date = as.Date(paste(year, month, "01", sep = "-"))) %>% 
+  mutate(average_tas_c = tsavg - 273.15) %>% 
+  dplyr::select(-tsavg, -time, -year, -month) %>% 
+  # separate(col = time, into = c("date", "tod"), sep = " ") %>% 
+  # mutate(date = mdy(date)) %>% 
+  # mutate(month = month(date, label = TRUE))
+  # dplyr::select(-tsavg, -tod) %>% 
+  write_csv(file = "historical1" , col_names = TRUE, append = TRUE)
 ```
 
 
