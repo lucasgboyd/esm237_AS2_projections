@@ -46,6 +46,9 @@ hist4 <- read_csv(here("data", "historical4.csv"))
 # historical data compiled 1848-2012
 historical <- rbind(hist1, hist2, hist3, hist4) %>% 
   mutate(year = year(date))  
+
+historical_fgoal <- read_csv(here("data", "fgoal_historical.csv"))
+
 ```
 
 
