@@ -25,10 +25,14 @@ The following CSVs were created using the esm_237_as2_csv_template.Rmd
 # MODEL OUTPUTS
 # FGOAL and CESM are two different models, SSP2 and SSP5 are the different scenarios
 
-fgoal_2 <- read_csv(here("data", "fgoal_245.csv")) # FGOAL SSP2
-fgoal_5 <- read_csv(here("data", "fgoal_585.csv")) # FGOAL SSP5
-cesm_2 <- read_csv(here("data", "cesm_245.csv")) # CESM SSP2
-cesm_5 <- read_csv(here("data", "cesm_585.csv")) # CESM SSP5
+fgoal_2 <- read_csv(here("data", "fgoal_245.csv")) %>%  # FGOAL SSP2
+  mutate(year = year(date))
+fgoal_5 <- read_csv(here("data", "fgoal_585.csv")) %>%  # FGOAL SSP5 
+  mutate(year = year(date)) 
+cesm_2 <- read_csv(here("data", "cesm_245.csv")) %>%  # CESM SSP2
+  mutate(year = year(date))
+cesm_5 <- read_csv(here("data", "cesm_585.csv")) %>% # CESM SSP5
+  mutate(year = year(date))
 
 
 
@@ -40,65 +44,53 @@ hist3 <- read_csv(here("data", "historical3.csv"))
 hist4 <- read_csv(here("data", "historical4.csv"))
 
 # historical data compiled 1848-2012
-historical <- rbind(hist1, hist2, hist3, hist4)
-```
-
-```{r}
-# convert all to time series
-
-fgoal_2_ts <- fgoal_2 %>% 
-  as_tsibble(key = NULL, index = date) 
-
-# fgoal_5_ts <- fgoal_5 %>% 
-  # as_tsibble(key = NULL, index = date)
-
-cesm_2_ts <- cesm_2 %>% 
-  as_tsibble(key = NULL, index = date) 
-
-cesm_5_ts <- cesm_5 %>% 
-  as_tsibble(key = NULL, index = date) 
-
-historical_ts <- historical %>% 
-  as_tsibble(key = NULL, index = date) 
-
+historical <- rbind(hist1, hist2, hist3, hist4) %>% 
+  mutate(year = year(date))  
 ```
 
 
 ```{r}
 # Yearly ts
-fgoal_2_yearly <- fgoal_2_ts %>% 
-  index_by(yearly = ~year(.)) %>% 
+fgoal_2_yearly <- fgoal_2 %>% 
+  group_by(year) %>% 
   summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) %>% 
-  filter(yearly %in% c(2014:2068))
+  filter( year != 2013) 
 
-cesm_2_yearly <- cesm_2_ts %>% 
-  index_by(yearly = ~year(.)) %>% 
-  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+fgoal_5_yearly <- fgoal_5 %>% 
+  group_by(year) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) %>% 
+  filter( year != 2013) 
 
-cesm_5_yearly <- cesm_5_ts %>% 
-  index_by(yearly = ~year(.)) %>% 
-  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+cesm_2_yearly <- cesm_2 %>% 
+  group_by(year) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) %>% 
+  filter( year != 2013) 
 
-historical_yearly <- historical_ts %>% 
-  index_by(yearly = ~year(.)) %>% 
-  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
+cesm_5_yearly <- cesm_5 %>% 
+  group_by(year) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) %>% 
+  filter( year != 2013) 
+
+historical_yearly <- historical %>% 
+  group_by(year) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) 
+
 
 ```
 
 
 ```{r}
 ggplot() +
-  geom_line(data = fgoal_2_yearly, aes(x = yearly, y = mean_tas),
-            color = "red") +
-  #geom_line(data = fgoal_5_yearly, aes(x = year, y = mean_tas)) +
-  geom_line(data = cesm_2_yearly, aes(x = yearly, y = mean_tas),
-            color = "red",
-            linetype = 3) +
-  geom_line(data = cesm_5_yearly, aes(x = yearly, y = mean_tas),
-            color = "blue",
-            linetype = 3) +
-  geom_line(data = historical_yearly, aes(x = yearly, y = mean_tas),
+  geom_line(data = cesm_2_yearly, aes(x = year, y = mean_tas),
+            color = "slateblue3") +
+  geom_smooth(data = cesm_2_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "slateblue3", fill = "slateblue3") +
+  geom_line(data = cesm_5_yearly, aes(x = year, y = mean_tas),
+            color = "tomato2") +
+  geom_smooth(data = cesm_5_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "tomato2", fill = "tomato2") +
+  
+  geom_line(data = historical_yearly, aes(x = year, y = mean_tas),
             color = "lightgray") +
+  geom_smooth(data = historical_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "black") +
   
   theme_classic() +
   geom_vline(xintercept = 2014) +
@@ -107,4 +99,21 @@ ggplot() +
 
 ```
 
+```{r}
+ggplot() +
+ 
+  geom_line(data = fgoal_5_yearly, aes(x = year, y = mean_tas), color = "tomato2") +
+  geom_line(data = fgoal_2_yearly, aes(x = year, y = mean_tas),
+            color = "slateblue3") +
+  geom_smooth(data = fgoal_5_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "tomato2", fill = "tomato2") +
+   geom_smooth(data = fgoal_2_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "slateblue3", fill = "slateblue3") +
+  
+  geom_line(data = historical_yearly, aes(x = year, y = mean_tas),
+            color = "lightgray") +
+  geom_smooth(data = historical_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "black") +
+  
+  theme_classic() +
+  geom_vline(xintercept = 2014) +
+  scale_y_continuous(breaks = seq(from = -14, to = 0, by = 2), limits = c(-14,0))
+```
 
