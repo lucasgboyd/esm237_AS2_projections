@@ -44,10 +44,11 @@ hist3 <- read_csv(here("data", "historical3.csv"))
 hist4 <- read_csv(here("data", "historical4.csv"))
 
 # historical data compiled 1848-2012
-historical <- rbind(hist1, hist2, hist3, hist4) %>% 
+historical_cesm <- rbind(hist1, hist2, hist3, hist4) %>% 
   mutate(year = year(date))  
 
-historical_fgoal <- read_csv(here("data", "fgoal_historical.csv"))
+historical_fgoal <- read_csv(here("data", "fgoal_historical.csv"))  %>%  
+  mutate(year = year(date))
 
 ```
 
@@ -74,9 +75,13 @@ cesm_5_yearly <- cesm_5 %>%
   summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) %>% 
   filter( year != 2013) 
 
-historical_yearly <- historical %>% 
+historical_cesm_yearly <- historical_cesm %>% 
   group_by(year) %>% 
   summarize(mean_tas = mean(average_tas_c, na.rm = TRUE)) 
+
+historical_fgoal_yearly <- historical_fgoal %>% 
+  group_by(year) %>% 
+  summarize(mean_tas = mean(average_tas_c, na.rm = TRUE))
 
 
 ```
@@ -91,13 +96,19 @@ ggplot() +
             color = "tomato2") +
   geom_smooth(data = cesm_5_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "tomato2", fill = "tomato2") +
   
-  geom_line(data = historical_yearly, aes(x = year, y = mean_tas),
+  geom_line(data = historical_cesm_yearly, aes(x = year, y = mean_tas),
             color = "lightgray") +
-  geom_smooth(data = historical_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "black") +
+  geom_smooth(data = historical_cesm_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "black") +
   
   theme_classic() +
   geom_vline(xintercept = 2014) +
-  scale_y_continuous(breaks = seq(from = -14, to = 0, by = 2), limits = c(-14,0))
+  scale_y_continuous(breaks = seq(from = -14, to = 0, by = 2), limits = c(-14,0)) +
+  annotate("label", x = 2062, y = 0, label = "SSP5",color = "tomato2", size = 3)  +
+  annotate("label", x = 2062, y = -7, label = "SSP2",color = "slateblue3", size = 3) +
+  annotate("label", x = 1857, y = -8.5, label = "Historical",color = "black", size = 3) +
+  labs(x = "Year", y ="Mean Surface Air Temperature (°C)", title = "Mean Surface Air Temperature Change in Svalbard, Norway") +
+  theme(plot.title = element_text(hjust = 0.5))
+  
   
 
 ```
@@ -111,12 +122,17 @@ ggplot() +
   geom_smooth(data = fgoal_5_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "tomato2", fill = "tomato2") +
    geom_smooth(data = fgoal_2_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "slateblue3", fill = "slateblue3") +
   
-  geom_line(data = historical_yearly, aes(x = year, y = mean_tas),
+  geom_line(data = historical_fgoal_yearly, aes(x = year, y = mean_tas),
             color = "lightgray") +
-  geom_smooth(data = historical_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "black") +
+  geom_smooth(data = historical_fgoal_yearly, aes(x = year, y = mean_tas), method = "loess", size = .5, color = "black") +
+  annotate("label", x = 2080, y = 0, label = "SSP5",color = "tomato2", size = 3)  +
+  annotate("label", x = 2090, y = -9, label = "SSP2",color = "slateblue3", size = 3) +
+  annotate("label", x = 1883, y = -13, label = "Historical",color = "black", size = 3) +
   
   theme_classic() +
   geom_vline(xintercept = 2014) +
-  scale_y_continuous(breaks = seq(from = -14, to = 0, by = 2), limits = c(-14,0))
+  scale_y_continuous(breaks = seq(from = -14, to = 0, by = 2), limits = c(-17,0)) +
+  labs(x = "Year", y ="Mean Surface Air Temperature (°C)", title = "Mean Surface Air Temperature Change in Svalbard, Norway") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
