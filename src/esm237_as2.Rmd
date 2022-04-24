@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "Lucas Boyd"
+title: "ESM 273 Assignment 2: Climate Projections"
+author: "Logan Babcock, Lucas Boyd, Renee LaManna"
 date: "4/15/2022"
 output: 
   html_document:
@@ -51,6 +51,25 @@ historical_fgoal <- read_csv(here("data", "fgoal_historical.csv"))  %>%
   mutate(year = year(date))
 
 ```
+**Location Choice:** Svalbard, Norway
+**Latitude:** Between 76-81
+**Longitude:** Between 10-30
+
+**Introduction:**
+The northernmost settlement of humans on Earth is located on the island chain that contains Svalbard, Norway. This location is an archipelago between Norway and the North Pole that consists of glaciers and frozen tundra, sporting a larger population of polar bears than human inhabitants. Svalbard is an interesting place to look at for climate scenarios because of its location, and characteristics of its landscape. More than half of Svalbard’s lands are covered by glaciers, numbering over 2,000 and covering almost 60% of land area, with one of the world’s largest ice caps located on the Nordaustlandet island. Svalbard is at the end of the Gulf Stream’s path, which brings a mixture a warm and cold water to the Bering Sea, making the sea rich in aquatic life. 
+
+With Svalbard’s location and climate we would expect the future impacts of climate change to be exacerbated due to polar amplification. The northern arctic is warming at a high rate compared to the rest of the world, with Svalbard being located in the fastest warming region within the circumpolar arctic (Descamps et al., 2017). Glaciers and sea level are important aspects of climate impacts to look at in future scenarios, as they are defining characteristics of the island. In this assignment we consider surface air temperature, which provides us with an understanding of how climate change will affect the ambient temperature of the region. We can use this data to anticipate the changes in glaciers, amount of permafrost, and overall evolution of Svalbard’s ecosystems as our climate continues to change. 
+
+**SSP Choice:**
+We chose SSP2 because it represents a middle of the road, business as usual outcome, while SSP5 is the highest emissions outcome. These comparisons are useful because of their simplicity to translate into layman's terms.
+
+SSP 2
+Middle of the Road (Medium challenges to mitigation and adaptation)
+In this scenario the world follows a path in which social, economic, and technological trends do not shift markedly from historical patterns. Development and income growth proceeds unevenly, with some countries making relatively good progress while others fall short of expectations. Global and national institutions work toward but make slow progress in achieving sustainable development goals. Environmental systems experience degradation, although there are some improvements and overall the intensity of resource and energy use declines. Global population growth is moderate and levels off in the second half of the century. Income inequality persists or improves only slowly and challenges to reducing vulnerability to societal and environmental changes remain.
+
+SSP5
+Fossil-fueled Development – Taking the Highway (High challenges to mitigation, low challenges to adaptation)
+For this scenario, the world places increasing faith in competitive markets, innovation and participatory societies to produce rapid technological progress and development of human capital as the path to sustainable development. Global markets are increasingly integrated. There are also strong investments in health, education, and institutions to enhance human and social capital. At the same time, the push for economic and social development is coupled with the exploitation of abundant fossil fuel resources and the adoption of resource and energy intensive lifestyles around the world. All these factors lead to rapid growth of the global economy, while global population peaks and declines in the 21st century. Local environmental problems like air pollution are successfully managed. There is faith in the ability to effectively manage social and ecological systems, including by geo-engineering if necessary.
 
 
 ```{r}
@@ -112,6 +131,7 @@ ggplot() +
   
 
 ```
+**Figure 1.** Mean surface air temperature (tas) change in Svalbard, Norway using Community Earth System Models (CESM) to visualize future tas projections under two different emission scenarios. SSP5 is the highest emission scenario of fossil-fueled development, while SSP2 is a middle of the road scenario. 
 
 ```{r}
 ggplot() +
@@ -135,4 +155,16 @@ ggplot() +
   labs(x = "Year", y ="Mean Surface Air Temperature (°C)", title = "Mean Surface Air Temperature Change in Svalbard, Norway") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+**Figure 2.** Mean surface air temperature (tas) change in Svalbard, Norway using Flexible Global Ocean-Atmosphere-Land System Model (Fgoal) to visualize future tas projections under two different emission scenarios. SSP5 is the highest emission scenario of fossil-fueled development, while SSP2 is a middle of the road scenario. 
+
+**Discussion:**
+The temperature trends seen over the 21st century (2015-2100) are largely different from the trends seen in historical data, which covers 1850 to the present (2021). In both Figure 1 and Figure 2, the models predict average surface air temperatures to increase at a rate higher than seen in the historical data, which is seen in the increased steepness in slope for both models and scenarios. In both models, the year 2050 has average temperature rising to above -4 Degrees Celcius, which is over 4 degrees warmer than at the turn of the century. Our model that extends to 2100 shows average surface temperature approaching zero degrees celsius, over 10 degrees of warming from 2000. Overall, the average surface temperature is expected to rise over the next century, approaching warmer temperatures than Svalbard has experienced within the past 200 years. The range in data is also expanding, with the extremes of the seasons becoming larger while the average temperature increases. This can be seen in the line graph outside of the averaged trendline; the shaded region shows more variation and movement along the axis for all scenarios than is seen in the historical data. This oscillation may be due to scenario assumptions, but is consistent with the exaggeration and amplification of seasons and weather patterns that we anticipate as a result of climate change. 
+
+Both the CESM and FGOAL models show the different scenarios resulting in an increase in average surface temperature, but they do have some differences. Firstly, the CESM model only projects out to 2050, which allows for a more detailed analysis for the more imminent future, but does not provide enough information for us to project to the end of the century. FGOAL however, does extend to 2100, providing us with more information on how the surface air temperature will change over the next 75 years. The notable differences between the models is how they interpret the two scenarios. The CESM model shows SSP2 and SSP5 having some differences where they part and have separate trajectories, but they end at a similar level of average temperature. The FGOAL model shows these scenarios differently. The FGOAL graph shows the scenarios aligned in slope and within the same range of temperatures, up until roughly 2050. Around that year, the FGOAL model shows SSP2 and SSP5 taking different trajectories, where the middle of the road scenario decreases and stays below the SSP5 average temperature range through the end of the century.  The FGOAL model predicts with SSP5 that Svaldbard would experience average temperatures approaching zero degrees celsius, which would be a 14 degree increase from the historical period. In the same model, SSP2 is predicted to result in an average temperature closer to -5 degrees celsius.
+
+The models themselves showed different interpretations of the scenarios; the alignment of the two SSP’s shown in Figure 1 change through time, separate from each other, and end in a similar range of temperatures. In Figure 2, we see the same end range of the scenarios around 2050, but they have a similar range of temperatures up until that point. 
+
+**Sources:**
+https://www.carbonbrief.org/explainer-how-shared-socioeconomic-pathways-explore-future-climate-change 
+Descamps et al., 2017 https://doi.org/10.1111/gcb.13381
 
